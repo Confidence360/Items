@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simple Product Selector</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 10px;
+      background: #f4f4f4;
+    }
+    .product {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      margin: 10px 0;
+      padding: 10px;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+    }
+    .product img {
+      width: 80px;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 8px;
+      margin-right: 10px;
+    }
+    .product.selected {
+      border: 2px solid #00aaff;
+      background: #e0f7ff;
+    }
+    .info {
+      flex-grow: 1;
+    }
+    .price {
+      font-weight: bold;
+      color: #333;
+    }
+    .total {
+      font-size: 1.2em;
+      margin-top: 20px;
+      text-align: right;
+      font-weight: bold;
+    }
+    #upload-section {
+      margin: 15px 0;
+    }
+  </style>
+</head>
+<body>
+  <h2>Select Products</h2>
+  <div id="upload-section">
+    <label for="upload-json">Upload Product JSON:</label>
+    <input type="file" id="upload-json" accept="application/json" />
+    <br><br>
+    <label for="upload-csv">Upload Product CSV:</label>
+    <input type="file" id="upload-csv" accept="text/csv" />
+  </div>
+  <div id="product-list"></div>
+  <div class="total">Total: $<span id="total">0.00</span></div>
+
+  <script>
+    let products = [
+      { id: 1, name: "Red T-shirt", price: 19.99, img: "https://via.placeholder.com/80?text=Tshirt" },
+      { id: 2, name: "Blue Jeans", price: 39.99, img: "https://via.placeholder.com/80?text=Jeans" },
+      { id: 3, name: "Sneakers", price: 59.99, img: "https://via.placeholder.com/80?text=Sneakers" },
+    ];
+
+    const productList = document.getElementById('product-list');
+    const totalEl = document.getElementById('total');
+    const uploadJson = document.getElementById('upload-json');
+    const uploadCsv = document.getElementById('upload-csv');
+    let selected = new Set();
+
+    uploadJson.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const data = JSON.parse(event.target.result);
+          if (Array.isArray(data)) {
+            products = data.map((p, i) => ({ ...p, id: i + 1 }));
+            selected.clear();
+            updateTotal();
+            render();
+          } else {
+            alert('Invalid JSON format: Must be an array of products.');
+          }
+        } catch (err) {
+          alert('Error parsing JSON.');
+        }
+      };
+      reader.readAsText(file);
+    });
+
+    uploadCsv.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const lines = event.target.result.split('\n');
+        const newProducts = [];
+        for (let i = 1; i < lines.length; i++) {
+          const line = lines[i].trim();
+          if (line) {
+            const [name, price, img] = line.split(',');
+            if (name && price && img) {
+              newProducts.push({ id: i, name: name.trim(), price: parseFloat(price.trim()), img: img.trim() });
+            }
+          }
+        }
+        if (newProducts.length) {
+          products = newProducts;
+          selected.clear();
+          updateTotal();
+          render();
+        } else {
+          alert('CSV must contain at least one valid product entry.');
+        }
+      };
+      reader.readAsText(file);
+    });
+
+    function render() {
+      productList.innerHTML = '';
+      products.forEach(product => {
+        const div = document.createElement('div');
+        div.className = 'product' + (selected.has(product.id) ? ' selected' : '');
+        div.onclick = () => {
+          if (selected.has(product.id)) {
+            selected.delete(product.id);
+          } else {
+            selected.add(product.id);
+          }
+          updateTotal();
+          render();
+        };
+
+        div.innerHTML = `
+          <img src="${product.img}" alt="${product.name}" />
+          <div class="info">
+            <div>${product.name}</div>
+            <div class="price">$${product.price.toFixed(2)}</div>
+          </div>
+        `;
+        productList.appendChild(div);
+      });
+    }
+
+    function updateTotal() {
+      const total = Array.from(selected)
+        .map(id => products.find(p => p.id === id).price)
+        .reduce((a, b) => a + b, 0);
+      totalEl.textContent = total.toFixed(2);
+    }
+
+    render();
+  </script>
+</body>
+</html>
