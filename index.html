@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BLACKOUT - Product Selector</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      padding: 10px;
+      background: #0f0f1a;
+      color: #ffffff;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    header img {
+      width: 120px;
+      border-radius: 10px;
+    }
+    header h1 {
+      margin: 10px 0 5px;
+      color: #00baff;
+    }
+    .product {
+      background: #1a1a2e;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.4);
+      margin: 10px 0;
+      padding: 10px;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      transition: background 0.3s, border 0.3s;
+    }
+    .product img {
+      width: 80px;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 8px;
+      margin-right: 10px;
+    }
+    .product.selected {
+      border: 2px solid #00baff;
+      background: #112240;
+    }
+    .info {
+      flex-grow: 1;
+    }
+    .price {
+      font-weight: bold;
+      color: #00baff;
+    }
+    .total {
+      font-size: 1.2em;
+      margin-top: 20px;
+      text-align: right;
+      font-weight: bold;
+    }
+    #upload-section {
+      margin: 15px 0;
+    }
+    label {
+      color: #ddd;
+    }
+    #selected-names {
+      font-size: 1em;
+      color: #ccc;
+      margin-top: 5px;
+      text-align: right;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/..." alt="Logo" />
+    <h1>BLACKOUT - Product Selector</h1>
+  </header>
+  <div id="product-list"></div>
+  <div class="total">Total: <span id="total-price">$0</span></div>
+  <div id="selected-names">Selected: None</div>
+  <script>
+    const products = [
+      { name: 'Product A', price: 20, image: 'https://via.placeholder.com/80?text=A' },
+      { name: 'Product B', price: 30, image: 'https://via.placeholder.com/80?text=B' },
+      { name: 'Product C', price: 40, image: 'https://via.placeholder.com/80?text=C' },
+    ];
+
+    const productList = document.getElementById('product-list');
+    const totalPriceEl = document.getElementById('total-price');
+    const selectedNamesEl = document.getElementById('selected-names');
+    let selectedProducts = [];
+
+    function renderProducts() {
+      productList.innerHTML = '';
+      products.forEach((product, index) => {
+        const div = document.createElement('div');
+        div.className = 'product';
+        div.innerHTML = `
+          <img src="${product.image}" alt="${product.name}" />
+          <div class="info">
+            <div>${product.name}</div>
+            <div class="price">$${product.price}</div>
+          </div>
+        `;
+        div.addEventListener('click', () => toggleSelection(product, div));
+        productList.appendChild(div);
+      });
+    }
+
+    function toggleSelection(product, divElement) {
+      const index = selectedProducts.findIndex(p => p.name === product.name);
+      if (index > -1) {
+        selectedProducts.splice(index, 1);
+        divElement.classList.remove('selected');
+      } else {
+        selectedProducts.push(product);
+        divElement.classList.add('selected');
+      }
+      updateSummary();
+    }
+
+    function updateSummary() {
+      const total = selectedProducts.reduce((sum, p) => sum + p.price, 0);
+      const names = selectedProducts.map(p => p.name).join(', ') || 'None';
+      totalPriceEl.textContent = `$${total}`;
+      selectedNamesEl.textContent = `Selected: ${names}`;
+    }
+
+    renderProducts();
+  </script>
+</body>
+</html>
