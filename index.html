@@ -4,6 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>BLACKOUT - Product Selector</title>
+  <link rel="apple-touch-icon" href="icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#0f0f1a">
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -60,6 +63,7 @@
     }
     #upload-section {
       margin: 15px 0;
+      text-align: center;
     }
     label {
       color: #ddd;
@@ -70,6 +74,13 @@
       margin-top: 5px;
       text-align: right;
     }
+    input[type="file"] {
+      background: #1a1a2e;
+      border: 1px solid #00baff;
+      color: white;
+      padding: 5px;
+      border-radius: 5px;
+    }
   </style>
 </head>
 <body>
@@ -77,24 +88,37 @@
     <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/..." alt="Logo" />
     <h1>BLACKOUT - Product Selector</h1>
   </header>
+
+  <div id="upload-section">
+    <label for="csvUpload">Upload Products CSV:</label>
+    <input type="file" id="csvUpload" accept=".csv">
+  </div>
+
   <div id="product-list"></div>
   <div class="total">Total: <span id="total-price">$0</span></div>
   <div id="selected-names">Selected: None</div>
+
   <script>
-    const products = [
-      { name: 'Product A', price: 20, image: 'https://via.placeholder.com/80?text=A' },
-      { name: 'Product B', price: 30, image: 'https://via.placeholder.com/80?text=B' },
-      { name: 'Product C', price: 40, image: 'https://via.placeholder.com/80?text=C' },
+    let products = [
+      { name: "Orange Juice", price: 5, image: "https://via.placeholder.com/100?text=OJ" },
+      { name: "Coctale#50", price: 5, image: "https://via.placeholder.com/100?text=C50" },
+      { name: "Mango", price: 5, image: "https://via.placeholder.com/100?text=Mango" },
+      { name: "Vodka", price: 5, image: "https://via.placeholder.com/100?text=Vodka" },
+      { name: "Peach", price: 5, image: "https://via.placeholder.com/100?text=Peach" },
+      { name: "Corona", price: 5, image: "https://via.placeholder.com/100?text=Corona" },
+      { name: "Whiskey", price: 5, image: "https://via.placeholder.com/100?text=Whiskey" },
+      { name: "Budwiser", price: 5, image: "https://via.placeholder.com/100?text=Budwiser" },
     ];
 
     const productList = document.getElementById('product-list');
     const totalPriceEl = document.getElementById('total-price');
     const selectedNamesEl = document.getElementById('selected-names');
+    const csvUpload = document.getElementById('csvUpload');
     let selectedProducts = [];
 
     function renderProducts() {
       productList.innerHTML = '';
-      products.forEach((product, index) => {
+      products.forEach((product) => {
         const div = document.createElement('div');
         div.className = 'product';
         div.innerHTML = `
@@ -122,11 +146,35 @@
     }
 
     function updateSummary() {
-      const total = selectedProducts.reduce((sum, p) => sum + p.price, 0);
+      const total = selectedProducts.reduce((sum, p) => sum + parseFloat(p.price), 0);
       const names = selectedProducts.map(p => p.name).join(', ') || 'None';
       totalPriceEl.textContent = `$${total}`;
       selectedNamesEl.textContent = `Selected: ${names}`;
     }
+
+    function parseCSV(text) {
+      const lines = text.split('\n').filter(Boolean);
+      const [header, ...rows] = lines;
+      return rows.map(row => {
+        const [name, price, image] = row.split(',').map(cell => cell.trim());
+        return { name, price: parseFloat(price), image };
+      });
+    }
+
+    csvUpload.addEventListener('change', (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const csvText = e.target.result;
+        products = parseCSV(csvText);
+        selectedProducts = [];
+        updateSummary();
+        renderProducts();
+      };
+      reader.readAsText(file);
+    });
 
     renderProducts();
   </script>
